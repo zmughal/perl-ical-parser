@@ -359,7 +359,7 @@ iCal::Parser - Parse iCalendar files into a data structure
 
 =head1 SYNOPSIS
 
-  use iCal::Parser
+  use iCal::Parser;
 
   my $parser=iCal::Parser->new();
   my $hash=$parser->parse($file);
