@@ -234,6 +234,10 @@ sub convert_value {
     my $value=$hash->{value};
     return $value unless $value; #should protect from invalid datetimes
 
+    # Trim common types that do not allow whitespaces
+    # (and that would make parse_datetime to fail, for instance)
+    $value =~ s/^\s+|\s+$//g if $TYPES{dates}{$type} || $TYPES{durations}{$type};
+
     if ($type eq 'TRIGGER') {
         #can be date or duration!
         return $dfmt->parse_duration($value) if $value =~/^[-+]?P/;
