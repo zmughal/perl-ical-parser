@@ -112,7 +112,7 @@ sub VEVENT {
         if $self->{debug};
 
     # stolen from Text::vFile::asData example
-    $e{allday}=1 if _param($event,'DTSTART','VALUE')||'' eq 'DATE';
+    $e{allday}=1 if (_param($event,'DTSTART','VALUE')||'') eq 'DATE';
 
     #is it a rule that an event must contain either a duration or end?
     # answer: no, it's not (cpan bug #25232)
