@@ -1,3 +1,8 @@
+2016-12-08  Cedric Cellier  <rixed-cpan@happyleptic.org>
+
+	* lib/iCal/Parser.pm: various fixes of some reported or
+	unreported bugs.
+
 2006-10-19  Rick Frankel  <rick@gg5.local>
 
 	* lib/iCal/Parser.pm (update_recurrences): fix problem with

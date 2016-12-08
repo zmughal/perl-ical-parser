@@ -3,26 +3,28 @@ abstract: 'Parse iCalendar files into a data structure'
 author:
   - 'Rick Frankel, cpan@rickster.com'
 build_requires:
-  FreezeThaw: 0.43
-  Test::More: 0.54
+  ExtUtils::MakeMaker: '0'
 configure_requires:
-  Module::Build: 0.36
-generated_by: 'Module::Build version 0.3603'
+  ExtUtils::MakeMaker: '0'
+dynamic_config: 0
+generated_by: 'CPAN::Meta::Converter version 2.142690'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+  version: '1.4'
 name: iCal-Parser
 provides:
   iCal::Parser:
     file: lib/iCal/Parser.pm
-    version: 1.20
+    version: '1.21'
 requires:
-  DateTime::Format::ICal: 0.08
-  File::Basename: 0
-  IO::File: 1.1
-  IO::String: 0
-  Text::vFile::asData: 0.02
+  DateTime::Format::ICal: '0.08'
+  File::Basename: '0'
+  FreezeThaw: '0.43'
+  IO::File: '1.1'
+  IO::String: '0'
+  Test::More: '0.54'
+  Text::vFile::asData: '0.02'
 resources:
   license: http://dev.perl.org/licenses/
-version: 1.20
+version: '1.21'

@@ -8,6 +8,9 @@ t/00load.t
 t/01args.t
 t/02parse.t
 t/03-multi-cal.t
+t/04-bug115325.t
+t/05-strip-some-ws.t
+t/06-month-wrap.t
 t/calendars/00no-name-or-id.ics
 t/calendars/00no-name-or-id.ics.dump
 t/calendars/01name-and-id.ics

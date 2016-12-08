@@ -2,7 +2,7 @@
 package iCal::Parser;
 use strict;
 
-our $VERSION='1.20';
+our $VERSION='1.21';
 
 our @ISA = qw (Exporter);
 
