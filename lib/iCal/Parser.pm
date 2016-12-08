@@ -136,11 +136,11 @@ sub VEVENT {
     } elsif ($end) {
         # non-rrule event possibly spanning multiple days,
         # expand into multiple events
-        my $diff=$end-$start;
-        if (!$e{allday} && $end->day > $start->day) {
+        if (!$e{allday} && ($end->ymd cmp $start->ymd) > 0) {
             $self->add_span(\%e);
             return;
         }
+        my $diff=$end-$start;
         if ($diff->delta_days > 1) {
             # note recurrence includes last date, and allday events
             # end at 00 on the last (non-inclusive) day, so remove it
