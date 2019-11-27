@@ -102,6 +102,9 @@ sub VEVENT {
 
     my %e=(idref=>$self->_cur_calid);
 
+    my $orig_tzid = $event->{properties}->{DTSTART}[0]->{param}{TZID};
+    my $shift_to_local_tz = 0;
+
     $self->map_properties(\%e,$event);
     $self->add_objects($event,\%e);
 
@@ -130,6 +133,15 @@ sub VEVENT {
         return;
     }
     if (my $recur=delete $e{RRULE}) {
+        if (defined($orig_tzid) && $orig_tzid ne $self->{tz}->name) {
+            # Use the original time zone so future events are the same
+            # time of day in that time zone, independent of daylight
+            # saving time changes in that time zone.  This might change
+            # the time of day in the local time zone.
+            $start->set_time_zone($orig_tzid);
+            # shift to local time zone later
+            $shift_to_local_tz = 1;
+        }
         $set=$dfmt->parse_recurrence(recurrence=>$recur, dtstart=>$start,
                                      #cap infinite repeats
                                      until =>$self->{span}->end);
@@ -161,20 +173,21 @@ sub VEVENT {
     return if defined $set->count && $set->count==0;
 
     if (my $dates=delete $e{'EXDATE'}) {
-        #mozilla/sunbird set exdate to T00..., so, get first start date
-        #and set times on exdates
-        my $d=$set->min;
-        my $exset=DateTime::Set->from_datetimes
-            (dates=>[
-                map {$_->set(hour=>$d->hour,minute=>$d->minute,
-                             second=>$d->second)
-                 } @$dates]);
+        if ($shift_to_local_tz) {
+             for my $dt (@$dates) {
+                 $dt->set_time_zone($orig_tzid);
+             }
+        }
         $set=$set
             ->complement(DateTime::Set->from_datetimes(dates=>$dates));
     }
     $set=$set->intersection($self->{span}) if $self->{span};
     my $iter=$set->iterator;
     while (my $dt=$iter->next) {
+        # convert "floating" time zone to original time zone, then local time zone
+        $dt->set_time_zone($orig_tzid)->set_time_zone($self->{tz})
+            if ($shift_to_local_tz);
+
         #bug found by D. Sweet. Fix alarms on entries
         #other than first
         my $new_event={%e,DTSTART=>$dt,DTEND=>$dt+$duration};
@@ -232,6 +245,7 @@ sub convert_value {
     my($self,$type,$hash)=@_;
 
     my $value=$hash->{value};
+    my $entry_tz = defined($hash->{param}{TZID}) ? $hash->{param}{TZID} : $self->{tz};
     return $value unless $value; #should protect from invalid datetimes
 
     # Trim common types that do not allow whitespaces
@@ -241,7 +255,7 @@ sub convert_value {
     if ($type eq 'TRIGGER') {
         #can be date or duration!
         return $dfmt->parse_duration($value) if $value =~/^[-+]?P/;
-        return $dfmt->parse_datetime($value)->set_time_zone($self->{tz});
+        return $dfmt->parse_datetime($value)->set_time_zone($entry_tz)->set_time_zone($self->{tz});
     }
     if ($TYPES{hash}{$type}) {
         my %h=(value=>$value);
@@ -260,14 +274,11 @@ sub convert_value {
         # I have a sample calendar "Employer Tax calendar"
         # which has an allday event ending on 20040332!
         # so, handle the exception
-        my $date;
-        eval {
-            $date=$dfmt->parse_datetime($s)->set_time_zone($self->{tz});
-        };
+        my $date=$dfmt->parse_datetime($s)->set_time_zone($entry_tz)->set_time_zone($self->{tz});
         push @dates, $date and next unless $@;
         die $@ if $@ && $type ne 'DTEND';
         push @dates,
-            $dfmt->parse_datetime(--$value)->set_time_zone($self->{tz});
+            $dfmt->parse_datetime(--$value)->set_time_zone($entry_tz)->set_time_zone($self->{tz});
     }
     return @dates;
 }
