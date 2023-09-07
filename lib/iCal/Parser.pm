@@ -103,6 +103,7 @@ sub VEVENT {
     my %e=(idref=>$self->_cur_calid);
 
     my $orig_tzid = $event->{properties}->{DTSTART}[0]->{param}{TZID};
+    $orig_tzid = fix_bad_tzid($orig_tzid);
     my $shift_to_local_tz = 0;
 
     $self->map_properties(\%e,$event);
@@ -241,11 +242,30 @@ sub _hours {
     $days||=0; $hours||=0; $minutes||=0;
     return sprintf "%.2f",($days*24*60+$hours*60+$minutes)/60.0;
 }
+
+sub fix_bad_tzid {
+    my ($entry_tz) = @_;
+    return unless defined $entry_tz;
+    my %fix_bad_data_tz = (
+        'Eastern Standard Time'                       => 'America/New_York',
+        'Central Standard Time'                       => 'America/Chicago',
+        'Central Time'                                => 'America/Chicago',
+        '(GMT-06.00) Central Time (US & Canada)'      => 'America/Chicago',
+        'GMT -0600 (Standard) / GMT -0500 (Daylight)' => 'America/Chicago',
+        'Pacific Time (US & Canada)'                  => 'America/Los_Angeles',
+    );
+    if( exists $fix_bad_data_tz{$entry_tz} ) {
+        return $fix_bad_data_tz{$entry_tz};
+    }
+    return $entry_tz;
+}
+
 sub convert_value {
     my($self,$type,$hash)=@_;
 
     my $value=$hash->{value};
     my $entry_tz = defined($hash->{param}{TZID}) ? $hash->{param}{TZID} : $self->{tz};
+    $entry_tz = fix_bad_tzid($entry_tz);
     return $value unless $value; #should protect from invalid datetimes
 
     # Trim common types that do not allow whitespaces
